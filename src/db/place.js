@@ -31,6 +31,18 @@ export const getPlacesByParentId = async parentId => {
   return result.rows
 }
 
+export const getPlaceTree = async id => {
+  const result = await pool.query(`
+    WITH RECURSIVE tree AS (
+      SELECT ${placeFields.join(', ')} FROM census_place WHERE id = $1
+      UNION
+      SELECT ${placeFields.map(f => `p.${f}`).join(', ')} FROM census_place p JOIN tree t ON p.id = t.parent_id
+    )
+    SELECT * FROM tree
+  `, [id])
+  return result.rows
+}
+
 export const getPlaceLoader = () => new DataLoader(async ids => {
   const result = await pool.query({
     name: 'getPlacesById',

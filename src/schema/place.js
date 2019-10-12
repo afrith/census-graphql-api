@@ -1,4 +1,4 @@
-import { getProvinces, getPlacesByParentId } from '../db'
+import { getProvinces, getPlacesByParentId, getPlaceTree } from '../db'
 
 export const typeDefs = `
 type Place {
@@ -12,6 +12,7 @@ type Place {
   households: Int
   area: Float
   children: [Place]
+  fullParents: [Place]
 }
 
 extend type Query {
@@ -30,6 +31,7 @@ export const resolvers = {
     type: ({ placetype_id: placeTypeId }, _, { loaders }) => loaders.placeType.load(placeTypeId),
     province: ({ province_id: provinceId }, _, { loaders }) => provinceId && loaders.place.load(provinceId),
     parent: ({ parent_id: parentId }, _, { loaders }) => parentId && loaders.place.load(parentId),
-    children: ({ id }) => getPlacesByParentId(id)
+    children: ({ id }) => getPlacesByParentId(id),
+    fullParents: ({ parent_id: parentId }) => parentId ? getPlaceTree(parentId) : []
   }
 }

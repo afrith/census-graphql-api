@@ -53,3 +53,14 @@ export const getPlaceLoader = () => new DataLoader(async ids => {
   result.rows.forEach(row => { keyed[row.id] = row })
   return ids.map(id => keyed[id])
 })
+
+export const getPlaceGeomLoader = () => new DataLoader(async ids => {
+  const result = await pool.query({
+    name: 'getPlaceGeomsById',
+    text: 'SELECT id, ST_AsGeoJSON(geom, 5) AS geom FROM census_place WHERE id = ANY($1)',
+    values: [ids]
+  })
+  const keyed = {}
+  result.rows.forEach(({ id, geom }) => { keyed[id] = JSON.parse(geom) })
+  return ids.map(id => keyed[id])
+})

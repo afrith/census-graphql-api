@@ -13,6 +13,7 @@ type Place {
   area: Float
   children: [Place]
   fullParents: [Place]
+  geom: JSON
 }
 
 extend type Query {
@@ -32,6 +33,7 @@ export const resolvers = {
     province: ({ province_id: provinceId }, _, { loaders }) => provinceId && loaders.place.load(provinceId),
     parent: ({ parent_id: parentId }, _, { loaders }) => parentId && loaders.place.load(parentId),
     children: ({ id }) => getPlacesByParentId(id),
-    fullParents: ({ parent_id: parentId }) => parentId ? getPlaceTree(parentId) : []
+    fullParents: ({ parent_id: parentId }) => parentId ? getPlaceTree(parentId) : [],
+    geom: ({ id }, _, { loaders }) => loaders.placeGeom.load(id)
   }
 }

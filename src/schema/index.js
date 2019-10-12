@@ -1,4 +1,5 @@
 import gql from 'graphql-tag'
+import GraphQLJSON from 'graphql-type-json'
 import { merge } from 'lodash'
 
 import * as placetype from './placetype'
@@ -8,9 +9,13 @@ const subschemas = [placetype, place]
 
 const typeDef = `
 type Query
+
+scalar JSON
 `
 
-const resolver = {}
+const resolver = {
+  JSON: GraphQLJSON
+}
 
 export const typeDefs = gql([typeDef, ...subschemas.map(s => s.typeDefs)].join('\n'))
 

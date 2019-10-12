@@ -30,6 +30,7 @@
     "graphql": "^14.5.3",
     "graphql-tag": "^2.10.1",
     "graphql-tools": "^4.0.5",
+    "graphql-type-json": "^0.3.0",
     "koa": "^2.8.1",
     "koa-bodyparser": "^4.2.1",
     "koa-logger": "^3.2.1",

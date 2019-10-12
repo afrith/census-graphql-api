@@ -7,6 +7,7 @@ import koaLogger from 'koa-logger'
 import { ApolloServer } from 'apollo-server-koa'
 
 import { typeDefs, resolvers } from './schema'
+import { getPlaceTypeLoader, getPlaceLoader } from './db'
 
 const logger = winston.createLogger({
   format: winston.format.simple(),
@@ -24,7 +25,10 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ ctx }) => ({
-    userinfo: ctx.userinfo
+    loaders: {
+      placeType: getPlaceTypeLoader(),
+      place: getPlaceLoader()
+    }
   }),
   playground: process.env.NODE_ENV !== 'production'
 })

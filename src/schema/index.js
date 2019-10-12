@@ -2,8 +2,9 @@ import gql from 'graphql-tag'
 import { merge } from 'lodash'
 
 import * as placetype from './placetype'
+import * as place from './place'
 
-const subschemas = [placetype]
+const subschemas = [placetype, place]
 
 const typeDef = `
 type Query

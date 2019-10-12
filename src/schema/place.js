@@ -16,12 +16,14 @@ type Place {
 
 extend type Query {
   allProvinces: [Place]
+  placeById (id: Int!): Place
 }
 `
 
 export const resolvers = {
   Query: {
-    allProvinces: getProvinces
+    allProvinces: getProvinces,
+    placeById: (_, { id }, { loaders }) => loaders.place.load(id)
   },
 
   Place: {

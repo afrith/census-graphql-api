@@ -22,11 +22,29 @@ export const getPlaceById = async id => {
   return result.rows[0] || null
 }
 
+export const getPlaceByCode = async code => {
+  const result = await pool.query({
+    name: 'getPlaceByCode',
+    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE code = $1`,
+    values: [code]
+  })
+  return result.rows[0] || null
+}
+
 export const getPlacesByParentId = async parentId => {
   const result = await pool.query({
     name: 'getPlacesByParentId',
     text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE parent_id = $1`,
     values: [parentId]
+  })
+  return result.rows
+}
+
+export const getPlacesByName = async name => {
+  const result = await pool.query({
+    name: 'getPlacesByParentId',
+    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE name ILIKE $1 ORDER BY population DESC, LENGTH(code)`,
+    values: [`%${name}%`]
   })
   return result.rows
 }

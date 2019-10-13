@@ -1,5 +1,5 @@
 import { UserInputError } from 'apollo-server-koa'
-import { getProvinces, getPlaceByCode, getPlacesByName, getPlacesByParentId, getPlaceTree } from '../db'
+import { getProvinces, getPlaceByCode, getPlacesByName, getPlacesByParentId, getPlaceTree, getDemographics } from '../db'
 
 export const typeDefs = `
 type Place {
@@ -15,6 +15,17 @@ type Place {
   children: [Place]
   fullParents: [Place]
   geom: JSON
+  demographics: [DemogVariable]
+}
+
+type DemogVariable {
+  name: String!
+  values: [DemogValue]
+}
+
+type DemogValue {
+  label: String!
+  value: Int
 }
 
 extend type Query {
@@ -42,6 +53,7 @@ export const resolvers = {
     parent: ({ parent_id: parentId }, _, { loaders }) => parentId && loaders.place.load(parentId),
     children: ({ id }) => getPlacesByParentId(id),
     fullParents: ({ parent_id: parentId }) => parentId ? getPlaceTree(parentId) : [],
-    geom: ({ id }, _, { loaders }) => loaders.placeGeom.load(id)
+    geom: ({ id }, _, { loaders }) => loaders.placeGeom.load(id),
+    demographics: ({ id }) => getDemographics(id)
   }
 }

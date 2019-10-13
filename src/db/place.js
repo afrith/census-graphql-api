@@ -1,4 +1,5 @@
 import DataLoader from 'dataloader'
+import { groupBy } from 'lodash'
 import { pool } from './index'
 
 const placeFields = ['id', 'placetype_id', 'code', 'name', 'province_id', 'parent_id', 'population', 'households', 'area']
@@ -59,6 +60,25 @@ export const getPlaceTree = async id => {
     SELECT ${placeFields.join(', ')} FROM tree ORDER BY n DESC
   `, [id])
   return result.rows
+}
+
+export const getDemographics = async id => {
+  const result = await pool.query({
+    name: 'getDemographics',
+    text: `SELECT
+              gc.name as variable, g.name as label, pg.value
+            FROM census_placegroup pg
+              JOIN census_place p ON pg.place_id = p.id
+              JOIN census_group g ON pg.group_id = g.id
+              JOIN census_groupclass gc ON g.groupclass_id = gc.id
+            WHERE p.id = $1`,
+    values: [id]
+  })
+  const groups = groupBy(result.rows, 'variable')
+  return Object.keys(groups).map(name => ({
+    name,
+    values: groups[name].map(({ label, value }) => ({ label, value }))
+  }))
 }
 
 export const getPlaceLoader = () => new DataLoader(async ids => {

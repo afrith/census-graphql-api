@@ -30,8 +30,7 @@ const server = new ApolloServer({
       place: getPlaceLoader(),
       placeGeom: getPlaceGeomLoader()
     }
-  }),
-  playground: process.env.NODE_ENV !== 'production'
+  })
 })
 const apolloMiddleware = server.getMiddleware({ path: '/graphql', cors: false })
 router.get('/graphql', apolloMiddleware)

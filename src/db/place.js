@@ -8,7 +8,7 @@ export const getProvinces = async () => {
     name: 'getProvinces',
     text: `SELECT ${placeFields.map(f => `p.${f}`).join(', ')}
             FROM census_place p JOIN census_placetype pt ON p.placetype_id = pt.id
-            WHERE pt.name = 'province' ORDER BY UPPER(name)`
+            WHERE pt.name = 'province' ORDER BY UPPER(p.name)`
   })
   return result.rows
 }

@@ -8,7 +8,7 @@ export const getProvinces = async () => {
     name: 'getProvinces',
     text: `SELECT ${placeFields.map(f => `p.${f}`).join(', ')}
             FROM census_place p JOIN census_placetype pt ON p.placetype_id = pt.id
-            WHERE pt.name = 'province'`
+            WHERE pt.name = 'province' ORDER BY UPPER(name)`
   })
   return result.rows
 }
@@ -34,7 +34,7 @@ export const getPlaceByCode = async code => {
 export const getPlacesByParentId = async parentId => {
   const result = await pool.query({
     name: 'getPlacesByParentId',
-    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE parent_id = $1`,
+    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE parent_id = $1 ORDER BY UPPER(name)`,
     values: [parentId]
   })
   return result.rows
@@ -52,11 +52,11 @@ export const getPlacesByName = async name => {
 export const getPlaceTree = async id => {
   const result = await pool.query(`
     WITH RECURSIVE tree AS (
-      SELECT ${placeFields.join(', ')} FROM census_place WHERE id = $1
+      SELECT ${placeFields.join(', ')}, 0 as n FROM census_place WHERE id = $1
       UNION
-      SELECT ${placeFields.map(f => `p.${f}`).join(', ')} FROM census_place p JOIN tree t ON p.id = t.parent_id
+      SELECT ${placeFields.map(f => `p.${f}`).join(', ')}, n + 1 FROM census_place p JOIN tree t ON p.id = t.parent_id
     )
-    SELECT * FROM tree
+    SELECT ${placeFields.join(', ')} FROM tree ORDER BY n DESC
   `, [id])
   return result.rows
 }

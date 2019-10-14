@@ -10,7 +10,6 @@ The API is available by `POST` to https://census-api.adrianfrith.com/graphql.
 ```
 type Query {
   allProvinces: [Place]
-  placeById (id: Int!): Place
   placeByCode (code: String!): Place
   placesByName (name: String!): [Place]
   allPlaceTypes: [PlaceType]
@@ -19,15 +18,13 @@ type Query {
 scalar JSON
 
 type PlaceType {
-  id: Int!
   name: String!
   descrip: String
 }
 
 type Place {
-  id: Int!
-  type: PlaceType!
   code: String!
+  type: PlaceType!
   name: String
   province: Place
   parent: Place

@@ -1,16 +1,15 @@
 {
-  "name": "koa-graphql-template",
-  "version": "0.0.1",
-  "description": "Boilerplate for a server with Koa and Graphql",
+  "name": "census-graphql-api",
+  "version": "0.1.0",
+  "description": "GraphQL API for information from the South African 2011 census",
   "main": "dist/index.js",
   "module": "src/index.js",
-  "author": "Adrian Frith <adrianf@da.org.za>",
+  "author": "Adrian Frith <adrian@adrianfrith.com>",
   "repository": {
     "type": "git",
-    "url": "https://source.da-io.net/templates/koa-graphql-template.git"
+    "url": "https://github.com/afrith/census-graphql-api.git"
   },
-  "license": "UNLICENSED",
-  "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "babel src -d dist",
     "start": "node dist/index.js",

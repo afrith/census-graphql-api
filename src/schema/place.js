@@ -3,9 +3,8 @@ import { getProvinces, getPlaceByCode, getPlacesByName, getPlacesByParentId, get
 
 export const typeDefs = `
 type Place {
-  id: Int!
-  type: PlaceType!
   code: String!
+  type: PlaceType!
   name: String
   province: Place
   parent: Place
@@ -30,7 +29,6 @@ type DemogValue {
 
 extend type Query {
   allProvinces: [Place]
-  placeById (id: Int!): Place
   placeByCode (code: String!): Place
   placesByName (name: String!): [Place]
 }
@@ -39,7 +37,6 @@ extend type Query {
 export const resolvers = {
   Query: {
     allProvinces: getProvinces,
-    placeById: (_, { id }, { loaders }) => loaders.place.load(id),
     placeByCode: (_, { code }) => getPlaceByCode(code),
     placesByName: (_, { name }) => {
       if (name.length < 3) throw new UserInputError('Must provide at least three characters for a name search')

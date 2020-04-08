@@ -16,26 +16,26 @@
     "dev": "babel-watch src/index.js"
   },
   "devDependencies": {
-    "@babel/cli": "^7.5.5",
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
     "babel-watch": "^7.0.0",
-    "standard": "^14.3.1"
+    "standard": "^14.3.3"
   },
   "dependencies": {
     "@koa/cors": "^3.0.0",
-    "apollo-server-koa": "^2.9.0",
+    "apollo-server-koa": "^2.12.0",
     "dataloader": "^1.4.0",
-    "graphql": "^14.5.3",
-    "graphql-tag": "^2.10.1",
-    "graphql-tools": "^4.0.5",
-    "graphql-type-json": "^0.3.0",
-    "koa": "^2.8.1",
-    "koa-bodyparser": "^4.2.1",
+    "graphql": "^14.6.0",
+    "graphql-tag": "^2.10.3",
+    "graphql-tools": "^4.0.7",
+    "graphql-type-json": "^0.3.1",
+    "koa": "^2.11.0",
+    "koa-bodyparser": "^4.3.0",
     "koa-logger": "^3.2.1",
     "koa-router": "^7.4.0",
     "lodash": "^4.17.15",
-    "pg": "^7.12.1",
+    "pg": "^7.18.2",
     "winston": "^3.2.1"
   }
 }

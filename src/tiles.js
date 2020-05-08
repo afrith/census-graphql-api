@@ -25,6 +25,7 @@ tileRouter.get('/:z(\\d+)/:x(\\d+)/:y(\\d+).mvt', async ctx => {
   const mvts = await Promise.all(placeTypes.map(({ name, id }) => getLayerTile(name, id, z, x, y)))
 
   ctx.set('Content-Type', 'application/vnd.mapbox-vector-tile')
+  ctx.set('Cache-Control', 'public, max-age=604800')
   ctx.body = Buffer.concat(mvts)
 })
 

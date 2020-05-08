@@ -4,6 +4,11 @@ import { pool, getPlaceTypes } from './db'
 const tileRouter = new Router()
 export default tileRouter
 
+const layerMinZoom = {
+  mainplace: 7,
+  subplace: 9
+}
+
 tileRouter.get('/:z(\\d+)/:x(\\d+)/:y(\\d+).mvt', async ctx => {
   const z = parseInt(ctx.params.z)
   const x = parseInt(ctx.params.x)
@@ -13,7 +18,9 @@ tileRouter.get('/:z(\\d+)/:x(\\d+)/:y(\\d+).mvt', async ctx => {
   let placeTypes = await getPlaceTypes()
   if (ctx.query.layers) {
     const selectedLayers = ctx.query.layers.split(',').map(l => l.trim())
-    placeTypes = placeTypes.filter(pt => selectedLayers.includes(pt.name))
+    placeTypes = placeTypes.filter(({ name }) => selectedLayers.includes(name))
+  } else {
+    placeTypes = placeTypes.filter(({ name }) => z >= (layerMinZoom[name] || 0))
   }
   const mvts = await Promise.all(placeTypes.map(({ name, id }) => getLayerTile(name, id, z, x, y)))
 

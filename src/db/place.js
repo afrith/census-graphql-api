@@ -81,6 +81,22 @@ export const getDemographics = async id => {
   }))
 }
 
+export const getPlaceBbox = async id => {
+  const result = await pool.query({
+    name: 'getBbox',
+    text: `SELECT
+            ST_XMin(geom) AS west,
+            ST_YMin(geom) AS south,
+            ST_XMax(geom) AS east,
+            ST_YMax(geom) AS north
+          FROM census_place WHERE id = $1`,
+    values: [id]
+  })
+  const row = result.rows[0]
+  if (!row) return null
+  return [row.west, row.south, row.east, row.north]
+}
+
 export const getPlaceLoader = () => new DataLoader(async ids => {
   const result = await pool.query({
     name: 'getPlacesById',

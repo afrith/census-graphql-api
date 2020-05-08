@@ -1,6 +1,10 @@
+import Router from 'koa-router'
 import { pool, getPlaceTypes } from './db'
 
-export default async function tileMiddleware (ctx) {
+const tileRouter = new Router()
+export default tileRouter
+
+tileRouter.get('/:z(\\d+)/:x(\\d+)/:y(\\d+).mvt', async ctx => {
   const z = parseInt(ctx.params.z)
   const x = parseInt(ctx.params.x)
   const y = parseInt(ctx.params.y)
@@ -15,7 +19,7 @@ export default async function tileMiddleware (ctx) {
 
   ctx.set('Content-Type', 'application/vnd.mapbox-vector-tile')
   ctx.body = Buffer.concat(mvts)
-}
+})
 
 const tileQuery = `
 SELECT ST_AsMVT(mvtgeom.*, $5, 4096, 'geom', 'id') AS mvt FROM (

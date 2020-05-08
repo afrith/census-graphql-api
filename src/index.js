@@ -8,7 +8,7 @@ import { ApolloServer } from 'apollo-server-koa'
 
 import { typeDefs, resolvers } from './schema'
 import { getPlaceTypeLoader, getPlaceLoader, getPlaceGeomLoader } from './db'
-import tileMiddleware from './tiles'
+import tileRouter from './tiles'
 
 const logger = winston.createLogger({
   format: winston.format.simple(),
@@ -37,7 +37,7 @@ const apolloMiddleware = server.getMiddleware({ path: '/graphql', cors: false })
 router.get('/graphql', apolloMiddleware)
 router.post('/graphql', apolloMiddleware)
 
-router.get('/tiles/:z(\\d+)/:x(\\d+)/:y(\\d+).mvt', tileMiddleware)
+router.use('/tiles', tileRouter.routes(), tileRouter.allowedMethods())
 
 app.use(router.routes()).use(router.allowedMethods())
 

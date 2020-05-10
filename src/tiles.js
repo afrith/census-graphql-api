@@ -6,7 +6,8 @@ export default tileRouter
 
 const layerMinZoom = {
   mainplace: 7,
-  subplace: 9
+  subplace: 9,
+  sa: 11
 }
 
 tileRouter.get('/:z(\\d+)/:x(\\d+)/:y(\\d+).mvt', async ctx => {

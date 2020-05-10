@@ -44,7 +44,7 @@ export const getPlacesByParentId = async parentId => {
 export const getPlacesByName = async name => {
   const result = await pool.query({
     name: 'getPlacesByName',
-    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE name ILIKE $1 ORDER BY population DESC, LENGTH(code)`,
+    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE placetype_id != 8 AND name ILIKE $1 ORDER BY population DESC, LENGTH(code)`,
     values: [`%${name}%`]
   })
   return result.rows

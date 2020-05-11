@@ -50,6 +50,15 @@ export const getPlacesByName = async name => {
   return result.rows
 }
 
+export const getPlacesByCoord = async (lat, lon) => {
+  const result = await pool.query({
+    name: 'getPlacesByCoord',
+    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint($1, $2), 4326))`,
+    values: [lon, lat]
+  })
+  return result.rows
+}
+
 export const getPlaceTree = async id => {
   const result = await pool.query(`
     WITH RECURSIVE tree AS (

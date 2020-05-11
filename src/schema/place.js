@@ -1,5 +1,5 @@
 import { UserInputError } from 'apollo-server-koa'
-import { getProvinces, getPlaceByCode, getPlacesByName, getPlacesByParentId, getPlaceTree, getDemographics, getPlaceBbox } from '../db'
+import { getProvinces, getPlaceByCode, getPlacesByName, getPlacesByParentId, getPlacesByCoord, getPlaceTree, getDemographics, getPlaceBbox } from '../db'
 
 export const typeDefs = `
 type Place {
@@ -32,6 +32,7 @@ extend type Query {
   allProvinces: [Place]
   placeByCode (code: String!): Place
   placesByName (name: String!): [Place]
+  placesByCoord (lat: Float, lon: Float): [Place]
 }
 `
 
@@ -42,7 +43,8 @@ export const resolvers = {
     placesByName: (_, { name }) => {
       if (name.length < 3) throw new UserInputError('Must provide at least three characters for a name search')
       return getPlacesByName(name)
-    }
+    },
+    placesByCoord: (_, { lat, lon }) => getPlacesByCoord(lat, lon)
   },
 
   Place: {

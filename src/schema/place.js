@@ -1,5 +1,5 @@
 import { UserInputError } from 'apollo-server-koa'
-import { getProvinces, getPlaceByCode, getPlacesByName, getPlacesByParentId, getPlacesByCoord, getPlaceTree, getDemographics, getPlaceBbox } from '../db'
+import { getPlaceTypeByName, getPlaceByCode, getPlaces, getPlacesByParentId, getPlaceTree, getDemographics, getPlaceBbox } from '../db'
 
 export const typeDefs = `
 type Place {
@@ -28,23 +28,51 @@ type DemogValue {
   value: Int
 }
 
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
+}
+
 extend type Query {
-  allProvinces: [Place]
-  placeByCode (code: String!): Place
-  placesByName (name: String!): [Place]
-  placesByCoord (lat: Float, lon: Float): [Place]
+  place (code: String!): Place
+  places (name: String, type: String, coordinates: CoordinatesInput): [Place]
+
+  allProvinces: [Place] @deprecated(reason: "Use places(type: \\"Province\\").")
+  placeByCode (code: String!): Place @deprecated(reason: "Use place(code: ...).")
+  placesByName (name: String!): [Place] @deprecated(reason: "Use place(name: ...).")
+  placesByCoord (lat: Float, lon: Float): [Place] @deprecated(reason: "Use place(coordinates: ...).")
 }
 `
 
+const getPlacesHelper = async args => {
+  if (Object.keys(args).length === 0) throw new UserInputError('Must specify at least one argument.')
+
+  const params = {}
+  if (args.name) {
+    if (args.name.length < 3) throw new UserInputError('Must provide at least three characters for a name search.')
+    params.name = args.name.trim()
+  }
+
+  if (args.type) {
+    const type = await getPlaceTypeByName(args.type)
+    if (!type) throw new UserInputError(`Invalid type "${type}".`)
+    params.typeId = type.id
+  }
+
+  if (args.coordinates) params.coordinates = args.coordinates
+
+  return getPlaces(params)
+}
+
 export const resolvers = {
   Query: {
-    allProvinces: getProvinces,
+    place: (_, { code }) => getPlaceByCode(code),
+    places: (_, args) => getPlacesHelper(args),
+    // Deprecated:
+    allProvinces: () => getPlacesHelper({ type: 'province' }),
     placeByCode: (_, { code }) => getPlaceByCode(code),
-    placesByName: (_, { name }) => {
-      if (name.length < 3) throw new UserInputError('Must provide at least three characters for a name search')
-      return getPlacesByName(name)
-    },
-    placesByCoord: (_, { lat, lon }) => getPlacesByCoord(lat, lon)
+    placesByName: (_, { name }) => getPlacesHelper({ name }),
+    placesByCoord: (_, { lat, lon }) => getPlacesHelper({ coordinates: { latitude: lat, longitude: lon } })
   },
 
   Place: {

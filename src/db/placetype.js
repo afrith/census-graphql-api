@@ -26,6 +26,11 @@ export const getPlaceTypeById = async id => {
   return placeTypes[id] || null
 }
 
+export const getPlaceTypeByName = async name => {
+  const placeTypes = await getPlaceTypesFromCache()
+  return Object.values(placeTypes).find(pt => pt.name === name) || null
+}
+
 export const getPlaceTypeLoader = () => new DataLoader(async ids => {
   const placeTypes = await getPlaceTypesFromCache()
   return ids.map(id => placeTypes[id])

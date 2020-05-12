@@ -17,8 +17,6 @@ type Place {
   bbox: [Float]
   variables: [PlaceVariable]
   variable (variableId: ID!): PlaceVariable
-
-  demographics: [DemogVariable] @deprecated(reason: "Use 'variables'.")
 }
 
 type PlaceVariable {
@@ -31,16 +29,6 @@ type LabelValue {
   value: Int!
 }
 
-type DemogVariable {
-  name: String!
-  values: [DemogValue]
-}
-
-type DemogValue {
-  label: String!
-  value: Int
-}
-
 input CoordinatesInput {
   latitude: Float!
   longitude: Float!
@@ -49,11 +37,6 @@ input CoordinatesInput {
 extend type Query {
   place (code: String!): Place
   places (name: String, type: String, coordinates: CoordinatesInput): [Place]
-
-  allProvinces: [Place] @deprecated(reason: "Use places(type: \\"Province\\").")
-  placeByCode (code: String!): Place @deprecated(reason: "Use place(code: ...).")
-  placesByName (name: String!): [Place] @deprecated(reason: "Use place(name: ...).")
-  placesByCoord (lat: Float, lon: Float): [Place] @deprecated(reason: "Use place(coordinates: ...).")
 }
 `
 
@@ -80,12 +63,7 @@ const getPlacesHelper = async args => {
 export const resolvers = {
   Query: {
     place: (_, { code }) => getPlaceByCode(code),
-    places: (_, args) => getPlacesHelper(args),
-    // Deprecated:
-    allProvinces: () => getPlacesHelper({ type: 'province' }),
-    placeByCode: (_, { code }) => getPlaceByCode(code),
-    placesByName: (_, { name }) => getPlacesHelper({ name }),
-    placesByCoord: (_, { lat, lon }) => getPlacesHelper({ coordinates: { latitude: lat, longitude: lon } })
+    places: (_, args) => getPlacesHelper(args)
   },
 
   Place: {
@@ -97,8 +75,6 @@ export const resolvers = {
     bbox: ({ id }) => getPlaceBbox(id),
     geom: ({ id }, _, { loaders }) => loaders.placeGeom.load(id),
     variables: ({ id }) => getPlaceVariables(id),
-    variable: ({ id }, { variableId }) => getPlaceVariable(id, variableId),
-    // Deprecated:
-    demographics: ({ id }) => getPlaceVariables(id).then(vars => vars.map(v => ({ name: v.variable.name, values: v.values })))
+    variable: ({ id }, { variableId }) => getPlaceVariable(id, variableId)
   }
 }

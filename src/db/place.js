@@ -103,6 +103,31 @@ export const getPlaceVariables = async id => {
   return Object.values(variables)
 }
 
+export const getPlaceVariable = async (placeId, variableId) => {
+  const result = await pool.query({
+    name: 'getPlaceVariable',
+    text: `SELECT
+              gc.id as "variableId", gc.name as "variableName", g.name as label, pg.value
+            FROM census_placegroup pg
+              JOIN census_place p ON pg.place_id = p.id
+              JOIN census_group g ON pg.group_id = g.id
+              JOIN census_groupclass gc ON g.groupclass_id = gc.id
+            WHERE p.id = $1 AND gc.id = $2`,
+    values: [placeId, variableId]
+  })
+
+  if (result.rows.length === 0) return null
+
+  const firstRow = result.rows[0]
+  return {
+    variable: {
+      id: firstRow.variableId,
+      name: firstRow.variableName
+    },
+    values: result.rows.map(row => ({ label: row.label, value: row.value }))
+  }
+}
+
 export const getPlaceBbox = async id => {
   const result = await pool.query({
     name: 'getBbox',

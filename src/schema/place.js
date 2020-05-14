@@ -1,5 +1,5 @@
 import { UserInputError } from 'apollo-server-koa'
-import { getPlaceTypeByName, getPlaceByCode, getPlaces, getPlacesByParentId, getPlaceTree, getPlaceVariables, getPlaceBbox } from '../db'
+import { getPlaceTypeByName, getPlaceByCode, getPlaces, getPlacesByParentId, getPlaceTree, getPlaceVariables, getPlaceVariable, getPlaceBbox } from '../db'
 
 export const typeDefs = `
 type Place {
@@ -16,6 +16,7 @@ type Place {
   geom: JSON
   bbox: [Float]
   variables: [PlaceVariable]
+  variable (variableId: ID!): PlaceVariable
 
   demographics: [DemogVariable] @deprecated(reason: "Use 'variables'.")
 }
@@ -96,6 +97,7 @@ export const resolvers = {
     bbox: ({ id }) => getPlaceBbox(id),
     geom: ({ id }, _, { loaders }) => loaders.placeGeom.load(id),
     variables: ({ id }) => getPlaceVariables(id),
+    variable: ({ id }, { variableId }) => getPlaceVariable(id, variableId),
     // Deprecated:
     demographics: ({ id }) => getPlaceVariables(id).then(vars => vars.map(v => ({ name: v.variable.name, values: v.values })))
   }

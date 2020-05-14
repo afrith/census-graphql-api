@@ -1,5 +1,4 @@
 import DataLoader from 'dataloader'
-import { groupBy } from 'lodash'
 import { pool } from './index'
 
 const placeFields = ['id', 'placetype_id', 'code', 'name', 'province_id', 'parent_id', 'population', 'households', 'area']
@@ -69,11 +68,11 @@ export const getPlaceTree = async id => {
   return result.rows
 }
 
-export const getDemographics = async id => {
+export const getPlaceVariables = async id => {
   const result = await pool.query({
-    name: 'getDemographics',
+    name: 'getPlaceVariables',
     text: `SELECT
-              gc.name as variable, g.name as label, pg.value
+              gc.id as "variableId", gc.name as "variableName", g.name as label, pg.value
             FROM census_placegroup pg
               JOIN census_place p ON pg.place_id = p.id
               JOIN census_group g ON pg.group_id = g.id
@@ -81,11 +80,27 @@ export const getDemographics = async id => {
             WHERE p.id = $1`,
     values: [id]
   })
-  const groups = groupBy(result.rows, 'variable')
-  return Object.keys(groups).map(name => ({
-    name,
-    values: groups[name].map(({ label, value }) => ({ label, value }))
-  }))
+
+  const variables = {}
+
+  result.rows.forEach(row => {
+    if (!variables[row.variableId]) {
+      variables[row.variableId] = {
+        variable: {
+          id: row.variableId,
+          name: row.variableName
+        },
+        values: []
+      }
+    }
+
+    variables[row.variableId].values.push({
+      label: row.label,
+      value: row.value
+    })
+  })
+
+  return Object.values(variables)
 }
 
 export const getPlaceBbox = async id => {

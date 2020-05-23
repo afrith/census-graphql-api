@@ -1,4 +1,4 @@
-import Router from 'koa-router'
+import Router from '@koa/router'
 import { pool, getPlaceTypes } from './db'
 
 const tileRouter = new Router()

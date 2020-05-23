@@ -1,5 +1,5 @@
 import Koa from 'koa'
-import Router from 'koa-router'
+import Router from '@koa/router'
 import cors from '@koa/cors'
 import koaBody from 'koa-bodyparser'
 import winston from 'winston'

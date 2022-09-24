@@ -1,5 +1,5 @@
 import { UserInputError } from 'apollo-server-koa'
-import { getProvinces, getPlaceByCode, getPlacesByName, getPlacesByParentId, getPlaceTree, getDemographics } from '../db'
+import { getPlaceTypeByName, getPlaceByCode, getPlaces, getPlacesByParentId, getPlaceTree, getPlaceVariables, getPlaceVariable, getPlaceBbox } from '../db'
 
 export const typeDefs = `
 type Place {
@@ -14,7 +14,21 @@ type Place {
   children: [Place]
   fullParents: [Place]
   geom: JSON
-  demographics: [DemogVariable]
+  bbox: [Float]
+  variables: [PlaceVariable]
+  variable (variableId: ID!): PlaceVariable
+
+  demographics: [DemogVariable] @deprecated(reason: "Use 'variables'.")
+}
+
+type PlaceVariable {
+  variable: Variable
+  values: [LabelValue]
+}
+
+type LabelValue {
+  label: String!
+  value: Int!
 }
 
 type DemogVariable {
@@ -27,21 +41,51 @@ type DemogValue {
   value: Int
 }
 
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
+}
+
 extend type Query {
-  allProvinces: [Place]
-  placeByCode (code: String!): Place
-  placesByName (name: String!): [Place]
+  place (code: String!): Place
+  places (name: String, type: String, coordinates: CoordinatesInput): [Place]
+
+  allProvinces: [Place] @deprecated(reason: "Use places(type: \\"Province\\").")
+  placeByCode (code: String!): Place @deprecated(reason: "Use place(code: ...).")
+  placesByName (name: String!): [Place] @deprecated(reason: "Use place(name: ...).")
+  placesByCoord (lat: Float, lon: Float): [Place] @deprecated(reason: "Use place(coordinates: ...).")
 }
 `
 
+const getPlacesHelper = async args => {
+  if (Object.keys(args).length === 0) throw new UserInputError('Must specify at least one argument.')
+
+  const params = {}
+  if (args.name) {
+    if (args.name.length < 3) throw new UserInputError('Must provide at least three characters for a name search.')
+    params.name = args.name.trim()
+  }
+
+  if (args.type) {
+    const type = await getPlaceTypeByName(args.type)
+    if (!type) throw new UserInputError(`Invalid type "${type}".`)
+    params.typeId = type.id
+  }
+
+  if (args.coordinates) params.coordinates = args.coordinates
+
+  return getPlaces(params)
+}
+
 export const resolvers = {
   Query: {
-    allProvinces: getProvinces,
+    place: (_, { code }) => getPlaceByCode(code),
+    places: (_, args) => getPlacesHelper(args),
+    // Deprecated:
+    allProvinces: () => getPlacesHelper({ type: 'province' }),
     placeByCode: (_, { code }) => getPlaceByCode(code),
-    placesByName: (_, { name }) => {
-      if (name.length < 3) throw new UserInputError('Must provide at least three characters for a name search')
-      return getPlacesByName(name)
-    }
+    placesByName: (_, { name }) => getPlacesHelper({ name }),
+    placesByCoord: (_, { lat, lon }) => getPlacesHelper({ coordinates: { latitude: lat, longitude: lon } })
   },
 
   Place: {
@@ -50,7 +94,11 @@ export const resolvers = {
     parent: ({ parent_id: parentId }, _, { loaders }) => parentId && loaders.place.load(parentId),
     children: ({ id }) => getPlacesByParentId(id),
     fullParents: ({ parent_id: parentId }) => parentId ? getPlaceTree(parentId) : [],
+    bbox: ({ id }) => getPlaceBbox(id),
     geom: ({ id }, _, { loaders }) => loaders.placeGeom.load(id),
-    demographics: ({ id }) => getDemographics(id)
+    variables: ({ id }) => getPlaceVariables(id),
+    variable: ({ id }, { variableId }) => getPlaceVariable(id, variableId),
+    // Deprecated:
+    demographics: ({ id }) => getPlaceVariables(id).then(vars => vars.map(v => ({ name: v.variable.name, values: v.values })))
   }
 }

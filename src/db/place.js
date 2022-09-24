@@ -1,18 +1,7 @@
 import DataLoader from 'dataloader'
-import { groupBy } from 'lodash'
 import { pool } from './index'
 
 const placeFields = ['id', 'placetype_id', 'code', 'name', 'province_id', 'parent_id', 'population', 'households', 'area']
-
-export const getProvinces = async () => {
-  const result = await pool.query({
-    name: 'getProvinces',
-    text: `SELECT ${placeFields.map(f => `p.${f}`).join(', ')}
-            FROM census_place p JOIN census_placetype pt ON p.placetype_id = pt.id
-            WHERE pt.name = 'province' ORDER BY UPPER(p.name)`
-  })
-  return result.rows
-}
 
 export const getPlaceById = async id => {
   const result = await pool.query({
@@ -41,12 +30,29 @@ export const getPlacesByParentId = async parentId => {
   return result.rows
 }
 
-export const getPlacesByName = async name => {
-  const result = await pool.query({
-    name: 'getPlacesByName',
-    text: `SELECT ${placeFields.join(', ')} FROM census_place WHERE name ILIKE $1 ORDER BY population DESC, LENGTH(code)`,
-    values: [`%${name}%`]
-  })
+export const getPlaces = async args => {
+  let text = `SELECT ${placeFields.join(', ')} FROM census_place WHERE TRUE`
+  const values = []
+
+  if (args.name) {
+    values.push(`%${args.name}%`)
+    text += ` AND placetype_id != 8 AND name ILIKE $${values.length}`
+  }
+
+  if (args.typeId) {
+    values.push(args.typeId)
+    text += ` AND placetype_id = $${values.length}`
+  }
+
+  if (args.coordinates) {
+    const { latitude, longitude } = args.coordinates
+    values.push(longitude, latitude)
+    text += ` AND ST_Contains(geom, ST_SetSRID(ST_MakePoint($${values.length - 1}, $${values.length}), 4326))`
+  }
+
+  text += ' ORDER BY population DESC, placetype_id'
+
+  const result = await pool.query({ text, values })
   return result.rows
 }
 
@@ -62,11 +68,11 @@ export const getPlaceTree = async id => {
   return result.rows
 }
 
-export const getDemographics = async id => {
+export const getPlaceVariables = async id => {
   const result = await pool.query({
-    name: 'getDemographics',
+    name: 'getPlaceVariables',
     text: `SELECT
-              gc.name as variable, g.name as label, pg.value
+              gc.id as "variableId", gc.name as "variableName", g.name as label, pg.value
             FROM census_placegroup pg
               JOIN census_place p ON pg.place_id = p.id
               JOIN census_group g ON pg.group_id = g.id
@@ -74,11 +80,68 @@ export const getDemographics = async id => {
             WHERE p.id = $1`,
     values: [id]
   })
-  const groups = groupBy(result.rows, 'variable')
-  return Object.keys(groups).map(name => ({
-    name,
-    values: groups[name].map(({ label, value }) => ({ label, value }))
-  }))
+
+  const variables = {}
+
+  result.rows.forEach(row => {
+    if (!variables[row.variableId]) {
+      variables[row.variableId] = {
+        variable: {
+          id: row.variableId,
+          name: row.variableName
+        },
+        values: []
+      }
+    }
+
+    variables[row.variableId].values.push({
+      label: row.label,
+      value: row.value
+    })
+  })
+
+  return Object.values(variables)
+}
+
+export const getPlaceVariable = async (placeId, variableId) => {
+  const result = await pool.query({
+    name: 'getPlaceVariable',
+    text: `SELECT
+              gc.id as "variableId", gc.name as "variableName", g.name as label, pg.value
+            FROM census_placegroup pg
+              JOIN census_place p ON pg.place_id = p.id
+              JOIN census_group g ON pg.group_id = g.id
+              JOIN census_groupclass gc ON g.groupclass_id = gc.id
+            WHERE p.id = $1 AND gc.id = $2`,
+    values: [placeId, variableId]
+  })
+
+  if (result.rows.length === 0) return null
+
+  const firstRow = result.rows[0]
+  return {
+    variable: {
+      id: firstRow.variableId,
+      name: firstRow.variableName
+    },
+    values: result.rows.map(row => ({ label: row.label, value: row.value }))
+  }
+}
+
+export const getPlaceBbox = async id => {
+  const result = await pool.query({
+    name: 'getBbox',
+    text: `SELECT
+            ST_XMin(geom) AS west,
+            ST_YMin(geom) AS south,
+            ST_XMax(geom) AS east,
+            ST_YMax(geom) AS north
+          FROM census_place WHERE id = $1`,
+    values: [id]
+  })
+  const row = result.rows[0]
+  if (!row) return null
+  return [row.west, row.south, row.east, row.north]
 }
 
 export const getPlaceLoader = () => new DataLoader(async ids => {

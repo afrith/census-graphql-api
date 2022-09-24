@@ -4,8 +4,9 @@ import { merge } from 'lodash'
 
 import * as placetype from './placetype'
 import * as place from './place'
+import * as variable from './variable'
 
-const subschemas = [placetype, place]
+const subschemas = [placetype, place, variable]
 
 const typeDef = `
 type Query

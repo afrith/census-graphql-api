@@ -38,7 +38,7 @@ router.post('/graphql', apolloMiddleware)
 
 app.use(router.routes()).use(router.allowedMethods())
 
-const port = process.env.PORT || 3003
+const port = process.env.PORT || 3000
 app.listen(port, function (err) {
   if (err) {
     logger.error(`Error starting server: ${err}`)

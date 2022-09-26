@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:16
 ENV NODE_ENV production
 WORKDIR /home/node
 COPY package.json package-lock.json /home/node/

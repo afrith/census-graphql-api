@@ -33,20 +33,23 @@ const server = new ApolloServer({
     }
   })
 })
-const apolloMiddleware = server.getMiddleware({ path: '/graphql', cors: false })
-router.get('/graphql', apolloMiddleware)
-router.post('/graphql', apolloMiddleware)
+server.start().then(() => {
+  const apolloMiddleware = server.getMiddleware({ path: '/graphql', cors: false })
+  router.get('/graphql', apolloMiddleware)
+  router.post('/graphql', apolloMiddleware)
 
-router.use('/tiles', tileRouter.routes(), tileRouter.allowedMethods())
+  router.use('/tiles', tileRouter.routes(), tileRouter.allowedMethods())
 
-app.use(router.routes()).use(router.allowedMethods())
+  app.use(router.routes()).use(router.allowedMethods())
 
-const port = process.env.PORT || 3000
-app.listen(port, function (err) {
-  if (err) {
-    logger.error(`Error starting server: ${err}`)
-    process.exit(1)
-  }
+  const port = process.env.PORT || 3000
+  app.listen(port, function (err) {
+    if (err) {
+      logger.error(`Error starting server: ${err}`)
+      process.exit(1)
+    }
 
-  logger.info(`Server listening on port ${port}`)
+    logger.info(`Server listening on port ${port}`)
+  })
 })
+
